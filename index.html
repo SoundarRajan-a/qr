@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Generator - Minimalist Edition</title>
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #000000;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .tagline {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 2px solid #000000;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #000000;
+        }
+
+        .form-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+        }
+
+        .form-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .form-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .form-content::-webkit-scrollbar-thumb {
+            background: #000000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            background: #ffffff;
+            border: 2px solid #000000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            background: #f8f8f8;
+            box-shadow: 3px 3px 0 #000000;
+            transform: translate(-1px, -1px);
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .style-option {
+            aspect-ratio: 1;
+            border: 2px solid #000000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .style-option:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .style-option.selected {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .color-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .color-btn {
+            padding: 10px;
+            border: 2px solid #000000;
+            background: #ffffff;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .color-btn:hover {
+            box-shadow: 3px 3px 0 #000000;
+            transform: translate(-1px, -1px);
+        }
+
+        .color-btn.selected {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .generate-btn:hover {
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            transform: translate(-2px, -2px);
+        }
+
+        .generate-btn:active {
+            transform: translate(0, 0);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qr-preview {
+            margin: 10px 0;
+        }
+
+        #qr-preview canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            opacity: 0.3;
+        }
+
+        .empty-state.hide {
+            display: none;
+        }
+
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .action-bar {
+            display: none;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .action-bar.show {
+            display: flex;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: 2px solid #000000;
+            background: #ffffff;
+            color: #000000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px dashed #000000;
+            text-align: center;
+            display: none;
+        }
+
+        .logo-preview.show {
+            display: block;
+        }
+
+        .logo-preview img {
+            max-width: 60px;
+            max-height: 60px;
+            margin-bottom: 5px;
+        }
+
+        .logo-name {
+            font-size: 9px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .remove-logo {
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: transparent;
+            border: 1px solid #000000;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .remove-logo:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 35px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .wrapper {
+                padding: 15px;
+            }
+
+            .header {
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .wrapper {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+
+            .style-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <h1>QR Code Generator</h1>
+            <p class="tagline">Minimalist • Powerful • Elegant</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <div class="panel-title">Configuration</div>
+
+                <div class="form-content">
+                    <div class="form-group">
+                        <label>URL or Text</label>
+                        <input type="text" id="qrData" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>QR Code Style</label>
+                        <div class="style-grid">
+                            <div class="style-option selected" data-style="squares" onclick="selectStyle(this)">Square</div>
+                            <div class="style-option" data-style="dots" onclick="selectStyle(this)">Dots</div>
+                            <div class="style-option" data-style="rounded" onclick="selectStyle(this)">Round</div>
+                            <div class="style-option" data-style="classy" onclick="selectStyle(this)">Classy</div>
+                            <div class="style-option" data-style="extra-rounded" onclick="selectStyle(this)">Extra</div>
+                            <div class="style-option" data-style="sharp" onclick="selectStyle(this)">Sharp</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color Scheme</label>
+                        <div class="color-toggle">
+                            <button class="color-btn selected" data-color="bw" onclick="selectColor(this)">Black/White</button>
+                            <button class="color-btn" data-color="wb" onclick="selectColor(this)">White/Black</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Size</label>
+                        <select id="qrSize">
+                            <option value="200">Small - 200px</option>
+                            <option value="250" selected>Medium - 250px</option>
+                            <option value="300">Large - 300px</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload Logo (Optional)</label>
+                        <input type="file" id="logoUpload" accept="image/*">
+                        <div class="logo-preview" id="logoPreview">
+                            <img id="logoImg" src="" alt="Logo preview">
+                            <div class="logo-name" id="logoName"></div>
+                            <button class="remove-logo" onclick="removeLogo()">Remove</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="generate-btn" onclick="generateQRCode()">Generate QR Code</button>
+            </div>
+
+            <div class="panel preview-panel">
+                <div class="panel-title">Preview</div>
+                
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">▢</div>
+                    <div class="empty-text">Your QR code will appear here</div>
+                </div>
+
+                <div id="qr-preview"></div>
+
+                <div class="action-bar" id="actionBar">
+                    <button class="action-btn" onclick="downloadQR('png')">PNG</button>
+                    <button class="action-btn" onclick="downloadQR('svg')">SVG</button>
+                    <button class="action-btn" onclick="downloadQR('jpeg')">JPEG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrCode = null;
+        let selectedStyle = 'squares';
+        let selectedColorScheme = 'bw';
+        let logoImage = null;
+
+        const styleMap = {
+            'squares': { dotsType: 'square', cornersSquareType: 'square', cornersDotType: 'square' },
+            'dots': { dotsType: 'dots', cornersSquareType: 'dot', cornersDotType: 'dot' },
+            'rounded': { dotsType: 'rounded', cornersSquareType: 'extra-rounded', cornersDotType: 'dot' },
+            'classy': { dotsType: 'classy', cornersSquareType: 'extra-rounded', cornersDotType: 'square' },
+            'extra-rounded': { dotsType: 'extra-rounded', cornersSquareType: 'extra-rounded', cornersDotType: 'dot' },
+            'sharp': { dotsType: 'classy-rounded', cornersSquareType: 'square', cornersDotType: 'square' }
+        };
+
+        function selectStyle(element) {
+            document.querySelectorAll('.style-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedStyle = element.getAttribute('data-style');
+        }
+
+        function selectColor(element) {
+            document.querySelectorAll('.color-btn').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedColorScheme = element.getAttribute('data-color');
+        }
+
+        document.getElementById('logoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    logoImage = event.target.result;
+                    document.getElementById('logoImg').src = logoImage;
+                    document.getElementById('logoName').textContent = file.name;
+                    document.getElementById('logoPreview').classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function removeLogo() {
+            logoImage = null;
+            document.getElementById('logoUpload').value = '';
+            document.getElementById('logoPreview').classList.remove('show');
+        }
+
+        function generateQRCode() {
+            const data = document.getElementById('qrData').value.trim();
+            const size = parseInt(document.getElementById('qrSize').value);
+
+            if (!data) {
+                alert('Please enter a URL or text');
+                return;
+            }
+
+            const qrPreview = document.getElementById('qr-preview');
+            const emptyState = document.getElementById('emptyState');
+            const actionBar = document.getElementById('actionBar');
+
+            qrPreview.innerHTML = '';
+            emptyState.classList.add('hide');
+
+            const colors = selectedColorScheme === 'bw' 
+                ? { dots: '#000000', background: '#ffffff', corners: '#000000' }
+                : { dots: '#ffffff', background: '#000000', corners: '#ffffff' };
+
+            const style = styleMap[selectedStyle];
+
+            const options = {
+                width: size,
+                height: size,
+                type: 'canvas',
+                data: data,
+                dotsOptions: {
+                    color: colors.dots,
+                    type: style.dotsType
+                },
+                backgroundOptions: {
+                    color: colors.background
+                },
+                cornersSquareOptions: {
+                    color: colors.corners,
+                    type: style.cornersSquareType
+                },
+                cornersDotOptions: {
+                    color: colors.corners,
+                    type: style.cornersDotType
+                },
+                imageOptions: {
+                    crossOrigin: 'anonymous',
+                    margin: 8
+                }
+            };
+
+            if (logoImage) {
+                options.image = logoImage;
+                options.imageOptions.imageSize = 0.3;
+                options.imageOptions.margin = 8;
+            }
+
+            qrCode = new QRCodeStyling(options);
+            qrCode.append(qrPreview);
+
+            actionBar.classList.add('show');
+        }
+
+        function downloadQR(format) {
+            if (qrCode) {
+                const timestamp = new Date().getTime();
+                qrCode.download({
+                    name: `qrcode-${timestamp}`,
+                    extension: format
+                });
+            }
+        }
+
+        document.getElementById('qrData').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                generateQRCode();
+            }
+        });
+    </script>
+</body>
+</html>
